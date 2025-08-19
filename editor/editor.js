@@ -1,3 +1,11 @@
+let gridSize = 10;
+
+function getGridSize() {
+  const form = document.getElementById("level-form");
+  return parseInt(form.elements["gridSize"].value) || 1;
+}
+
+
 let objects = []; // to store added objects
 let camera = {
   x: 0,
@@ -321,11 +329,20 @@ canvas.addEventListener("mousemove", (e) => {
 
   const mousePos = getMousePos(canvas, e);
 
-  if (draggingObject) {
-    draggingObject.position.x = mousePos.x - dragOffset.x;
-    draggingObject.position.y = mousePos.y - dragOffset.y;
+  if (draggingObject) 
+  {
+    const currentGridSize = getGridSize();
+
+    let rawX = mousePos.x - dragOffset.x;
+    let rawY = mousePos.y - dragOffset.y;
+
+    draggingObject.position.x = Math.round(rawX / currentGridSize) * currentGridSize;
+    draggingObject.position.y = Math.round(rawY / currentGridSize) * currentGridSize;
+
     drawObjects();
-  } else if (draggingCamera) {
+  } 
+  else if (draggingCamera) 
+  {
     cameraOffset.x += screenX - dragStart.x;
     cameraOffset.y += screenY - dragStart.y;
     dragStart.x = screenX;
