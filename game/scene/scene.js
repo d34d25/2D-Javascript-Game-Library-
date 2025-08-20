@@ -1,10 +1,10 @@
 import{PhysWorld} from "../../physics engine/physics.js"
 import{createBodyBox, createBodyCircle, createBodyTriangle} from "../../physics engine/rigidbody.js";
 import {Entity, centerCameraOnEntity } from "../gameObjects/entity.js";
-import { Player } from "../../testing/player.js";
 import {drawPolygon, drawCircle, drawPolygonOutline, drawCircleOutline} from "../../render/basicDrawing.js";
 import {setDarkOverlayUnified} from "../../render/light.js";
-
+import { Player } from "../gameObjects/player.js";
+//import { Player } from "../../testing/player.js";
 export class Scene
 {
 
@@ -28,11 +28,12 @@ export class Scene
 
     update({
         dt, 
-        useRotations = true, 
-        iterations = 20, 
-        directionalFriction = true, 
+        useRotations = true,
+        useFriction = true,
+        iterations = 20,
+        directionalFriction = true,
         angleTolerance = 0.75,
-        customUpdate
+        customUpdate = () => {}
     })
     {
         if(this.player)
@@ -49,7 +50,8 @@ export class Scene
             useRotations, 
             iterations, 
             directionalFriction, 
-            angleTolerance
+            angleTolerance,
+            useFriction
         });
     }
     
@@ -64,9 +66,10 @@ export class Scene
         overlayWidth,
         overlayHeight,
         coloredLights = true,
-        customDrawing
+        customDrawing = () => {}
     })
     {
+
         overlayWidth = overlayWidth ?? this.canvas.width * 4;
         overlayHeight = overlayHeight ?? this.canvas.height * 4;
 
@@ -103,40 +106,35 @@ export class Scene
             
             const currentEntity = this.entities[i];
     
-            if(!currentEntity.drawBody)
+            if(currentEntity.drawBody)
             {
-                if(currentEntity.drawEntityImage)
-                {
-                    currentEntity.drawImage({ctx});
-                }
+                currentEntity.drawRigidbodyFull(ctx,currentEntity.color,1);
             }
-            else
+
+            if(currentEntity.drawEntityImage)
             {
-    
-                if(!currentEntity.body.isCircle)
-                {
-                    drawPolygon({
-                        ctx,
-                        vertices: currentEntity.body.transformedVertices,
-                        fillStyle: currentEntity.color,
-                        alpha: 1
-                    })
-                }
-                else
-                {
-                    drawCircle({
-                        ctx,
-                        point: currentEntity.body.position,
-                        color: currentEntity.color,
-                        radius: currentEntity.body.radius,
-                        rotationIndicator: false
-                    })
-                }
-            }
+                currentEntity.drawImage({ctx});
+            }  
+            
         }
     
         if(darkOverlay)
         {
+            let overlayX = -200;
+            let overlayY = -200;
+            let overlayWidthC = 800;
+            let overlayHeightC = 600;
+
+            if(this.player)
+            {
+                overlayX = this.player.camera.position.x - (canvas.width / 2) / camera.scale;
+                overlayY = this.player.camera.position.y - (canvas.height / 2) / camera.scale;
+                overlayWidthC = this.player.canvas.width / camera.scale;
+                overlayHeightC = this.player.canvas.height / camera.scale;
+            }
+            
+
+
             setDarkOverlayUnified({
                 ctx,
                 x: overlayXstart,
@@ -207,6 +205,7 @@ export function loadSceneData(sceneData, canvas)
         {
             let color = rgbToCss(sceneData[i].color);
 
+            
             let tempEntity = new Entity({position: sceneData[i].position, 
                 size: sceneData[i].size, 
                 radius:sceneData[i].radius, 
@@ -263,38 +262,35 @@ export function loadSceneData(sceneData, canvas)
                 }
             }
 
-
             if(sceneData[i].hasBody)
             {
-                if(sceneData[i].type === "box")
+                switch(sceneData[i].type)
                 {
-                    tempEntity.createBox({density: sceneData[i].density, hasRotations: sceneData[i].hasRotations, bounciness: sceneData[i].bounciness,
-                        dynamicFriction: sceneData[i].dynamicFriction, staticFriction: sceneData[i].staticFriction,
-                        hasGravity: sceneData[i].hasGravity,
-                        infMass: sceneData[i].infiniteMass,
-                        angle: sceneData[i].angle
-                    });
+                    case "box":
+                        tempEntity.createBox({density: sceneData[i].density, hasRotations: sceneData[i].hasRotations, bounciness: sceneData[i].bounciness,
+                            dynamicFriction: sceneData[i].dynamicFriction, staticFriction: sceneData[i].staticFriction,
+                            hasGravity: sceneData[i].hasGravity,
+                            infMass: sceneData[i].infiniteMass,
+                            angle: sceneData[i].angle
+                        });
+                        break;
+                    case "triangle":
+                        tempEntity.createTriangle({density: sceneData[i].density, hasRotations: sceneData[i].hasRotations, bounciness: sceneData[i].bounciness,
+                            dynamicFriction: sceneData[i].dynamicFriction, staticFriction: sceneData[i].staticFriction,
+                            hasGravity: sceneData[i].hasGravity,
+                            infMass: sceneData[i].infiniteMass,
+                            angle: sceneData[i].angle
+                        });
+                        break;
+                    case "circle":
+                        tempEntity.createCircle({density: sceneData[i].density, hasRotations: sceneData[i].hasRotations, bounciness: sceneData[i].bounciness,
+                            dynamicFriction: sceneData[i].dynamicFriction, staticFriction: sceneData[i].staticFriction,
+                            hasGravity: sceneData[i].hasGravity,
+                            infMass: sceneData[i].infiniteMass,
+                            angle: sceneData[i].angle
+                        });
+                        break;
                 }
-                else if(sceneData[i].type === "triangle")
-                {
-                    tempEntity.createTriangle({density: sceneData[i].density, hasRotations: sceneData[i].hasRotations, bounciness: sceneData[i].bounciness,
-                        dynamicFriction: sceneData[i].dynamicFriction, staticFriction: sceneData[i].staticFriction,
-                        hasGravity: sceneData[i].hasGravity,
-                        infMass: infiniteMass,
-                        angle: sceneData[i].angle
-                    });
-                }
-                else if(sceneData[i].type === "circle")
-                {
-
-                    tempEntity.createCircle({density: sceneData[i].density, hasRotations: sceneData[i].hasRotations, bounciness: sceneData[i].bounciness,
-                        dynamicFriction: sceneData[i].dynamicFriction, staticFriction: sceneData[i].staticFriction,
-                        hasGravity: sceneData[i].hasGravity,
-                        infMass: sceneData[i].infiniteMass,
-                        angle: sceneData[i].angle
-                    });
-                }
-
 
                 if(sceneData[i].isPlayer)
                 {
@@ -312,53 +308,62 @@ export function loadSceneData(sceneData, canvas)
             let color = rgbToCss(sceneData[i].color);
             bodyColors.push(color);
 
-            if(sceneData[i].type === "box")
+            switch(sceneData[i].type)
             {
-                tempBody = createBodyBox({position: sceneData[i].position, size: sceneData[i].size,
-                    density: sceneData[i].density,
-                    restitution: sceneData[i].bounciness,
-                    linearDamping: sceneData[i].linearDamping,
-                    angularDamping: sceneData[i].angularDamping,
-                    isStatic: sceneData[i].isStatic,
-                    noRotation: !sceneData[i].hasRotations,
-                    affectedByGravity: sceneData[i].hasGravity,
-                    dynamicFriction: sceneData[i].dynamicFriction,
-                    staticFriction: sceneData[i].staticFriction
-                });
-                tempBody.setAngle(sceneData[i].angle);
-                if(sceneData[i].infiniteMass) tempBody.mass = Infinity;
-            }
-            else if(sceneData[i].type === "triangle")
-            {
-                tempBody = createBodyTriangle({position: sceneData[i].position, size: sceneData[i].size,
-                    density: sceneData[i].density,
-                    restitution: sceneData[i].bounciness,
-                    linearDamping: sceneData[i].linearDamping,
-                    angularDamping: sceneData[i].angularDamping,
-                    isStatic: sceneData[i].isStatic,
-                    noRotation: !sceneData[i].hasRotations,
-                    affectedByGravity: sceneData[i].hasGravity,
-                    dynamicFriction: sceneData[i].dynamicFriction,
-                    staticFriction: sceneData[i].staticFriction
-                });
-                tempBody.setAngle(sceneData[i].angle);
-                if(sceneData[i].infiniteMass) tempBody.mass = Infinity;
-            }
-            else if(sceneData[i].type === "circle")
-            {
-                tempBody = createBodyCircle({position: sceneData[i].position, radius: sceneData[i].radius,
-                    density: sceneData[i].density,
-                    restitution: sceneData[i].bounciness,
-                    linearDamping: sceneData[i].linearDamping,
-                    angularDamping: sceneData[i].angularDamping,
-                    isStatic: sceneData[i].isStatic,
-                    noRotation: !sceneData[i].hasRotations,
-                    affectedByGravity: sceneData[i].hasGravity,
-                    dynamicFriction: sceneData[i].dynamicFriction,
-                    staticFriction: sceneData[i].staticFriction
-                });
-                tempBody.setAngle(sceneData[i].angle);
-                if(sceneData[i].infiniteMass) tempBody.mass = Infinity;
+                case "box":
+                    tempBody = createBodyBox({position: sceneData[i].position, size: sceneData[i].size,
+                        density: sceneData[i].density,
+                        restitution: sceneData[i].bounciness,
+                        linearDamping: sceneData[i].linearDamping,
+                        angularDamping: sceneData[i].angularDamping,
+                        isStatic: sceneData[i].isStatic,
+                        noRotation: !sceneData[i].hasRotations,
+                        affectedByGravity: sceneData[i].hasGravity,
+                        dynamicFriction: sceneData[i].dynamicFriction,
+                        staticFriction: sceneData[i].staticFriction
+                    });
+
+                    tempBody.setAngle(sceneData[i].angle);
+
+                    if(sceneData[i].infiniteMass) tempBody.mass = Infinity;
+
+                    break;
+                case "triangle":
+                    tempBody = createBodyTriangle({position: sceneData[i].position, size: sceneData[i].size,
+                        density: sceneData[i].density,
+                        restitution: sceneData[i].bounciness,
+                        linearDamping: sceneData[i].linearDamping,
+                        angularDamping: sceneData[i].angularDamping,
+                        isStatic: sceneData[i].isStatic,
+                        noRotation: !sceneData[i].hasRotations,
+                        affectedByGravity: sceneData[i].hasGravity,
+                        dynamicFriction: sceneData[i].dynamicFriction,
+                        staticFriction: sceneData[i].staticFriction
+                    });
+                    tempBody.setAngle(sceneData[i].angle);
+
+                    if(sceneData[i].infiniteMass) tempBody.mass = Infinity;
+
+                    break;
+                case "circle":
+
+                    tempBody = createBodyCircle({position: sceneData[i].position, radius: sceneData[i].radius,
+                        density: sceneData[i].density,
+                        restitution: sceneData[i].bounciness,
+                        linearDamping: sceneData[i].linearDamping,
+                        angularDamping: sceneData[i].angularDamping,
+                        isStatic: sceneData[i].isStatic,
+                        noRotation: !sceneData[i].hasRotations,
+                        affectedByGravity: sceneData[i].hasGravity,
+                        dynamicFriction: sceneData[i].dynamicFriction,
+                        staticFriction: sceneData[i].staticFriction
+                    });
+
+                    tempBody.setAngle(sceneData[i].angle);
+
+                    if(sceneData[i].infiniteMass) tempBody.mass = Infinity;
+
+                    break;
             }
 
             if(tempBody !== null) 
@@ -379,3 +384,5 @@ function rgbToCss({ r, g, b })
 {
     return `rgb(${r}, ${g}, ${b})`;
 }
+
+

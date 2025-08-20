@@ -1,3 +1,5 @@
+import { loadImageLazy } from "./lib/imageDrawing.js";
+
 let gridSize = 10;
 
 function getGridSize() {
@@ -80,6 +82,9 @@ let selectedPosition = { x: 10, y: 10 }; // temporary, set from canvas later
 document.getElementById("add-object-btn").addEventListener("click", () => {
   const form = document.getElementById("level-form");
 
+  const imagePath = form.elements["imgPath"].value || "";
+  const spritesheetPath = form.elements["spritesheetPath"].value || "";
+
   const obj = {
     type: form.elements["type"].value,  // <-- add this line to capture type
     position: { ...selectedPosition },
@@ -87,32 +92,34 @@ document.getElementById("add-object-btn").addEventListener("click", () => {
         w: parseFloat(form.elements["width"].value) || 0,
         h: parseFloat(form.elements["height"].value) || 0,
     },
-    density: parseFloat(form.elements["density"].value) || 0,
-    bounciness: parseFloat(form.elements["bounciness"].value) || 0,
-    linearDamping: {
-        x: parseFloat(form.elements["linearDampingX"].value) || 0,
-        y: parseFloat(form.elements["linearDampingY"].value) || 0,
+      density: parseFloat(form.elements["density"].value) || 0,
+      bounciness: parseFloat(form.elements["bounciness"].value) || 0,
+      linearDamping: {
+          x: parseFloat(form.elements["linearDampingX"].value) || 0,
+          y: parseFloat(form.elements["linearDampingY"].value) || 0,
     },
-    angularDamping: parseFloat(form.elements["angularDamping"].value) || 0,
-    staticFriction: parseFloat(form.elements["staticFriction"].value) || 0,
-    dynamicFriction: parseFloat(form.elements["dynamicFriction"].value) || 0,
-    isStatic: form.elements["isStatic"].checked,
-    hasRotations: form.elements["hasRotations"].checked,
-    infinteMass: form.elements["infiniteMass"].checked,
-    angle: parseFloat(form.elements["angle"].value) || 0,
-    radius: parseFloat(form.elements["radius"].value) || 0,
-    hasGravity: form.elements["hasGravity"].checked,
-    color: hexToRgb(form.elements["color"].value || "#000000"),
-    alpha: parseFloat(form.elements["alpha"].value) || 1,
-    lights: [],
-    tags: [],
-    isEntity: form.elements["isEntity"].checked,
-    hasBody: form.elements["hasBody"].checked,
-    isPlayer: form.elements["isPlayer"].checked,
-    drawBody: form.elements["drawBody"].checked,
-    drawEntityImage: form.elements["drawImage"].checked,
-    imagePath: form.elements["imgPath"].value || "",
-    spritesheetPath: form.elements["spritesheetPath"].value || ""
+      angularDamping: parseFloat(form.elements["angularDamping"].value) || 0,
+      staticFriction: parseFloat(form.elements["staticFriction"].value) || 0,
+      dynamicFriction: parseFloat(form.elements["dynamicFriction"].value) || 0,
+      isStatic: form.elements["isStatic"].checked,
+      hasRotations: form.elements["hasRotations"].checked,
+      infinteMass: form.elements["infiniteMass"].checked,
+      angle: parseFloat(form.elements["angle"].value) || 0,
+      radius: parseFloat(form.elements["radius"].value) || 0,
+      hasGravity: form.elements["hasGravity"].checked,
+      color: hexToRgb(form.elements["color"].value || "#000000"),
+      alpha: parseFloat(form.elements["alpha"].value) || 1,
+      lights: [],
+      tags: [],
+      isEntity: form.elements["isEntity"].checked,
+      hasBody: form.elements["hasBody"].checked,
+      isPlayer: form.elements["isPlayer"].checked,
+      drawBody: form.elements["drawBody"].checked,
+      drawEntityImage: form.elements["drawImage"].checked,
+      imagePath: form.elements["imgPath"].value || "",
+      spritesheetPath: form.elements["spritesheetPath"].value || "",    
+      image: loadImageLazy(imagePath),
+      spriteSheet: loadImageLazy(spritesheetPath)
     };
 
 
@@ -198,6 +205,7 @@ function drawObjects() {
   objects.forEach(obj => {
     ctx.save();
 
+    //plain drawing
     ctx.globalAlpha = obj.alpha;
     ctx.fillStyle = `rgb(${obj.color.r},${obj.color.g},${obj.color.b})`;
     ctx.strokeStyle = `rgb(${obj.color.r},${obj.color.g},${obj.color.b})`;
@@ -224,6 +232,11 @@ function drawObjects() {
         ctx.fill();
         break;
     }
+
+    //draw images
+
+    if(obj.image) obj.image.draw({ctx: ctx, x:-obj.width/2,y:-obj.height/2, scaleX: 1,  scaleY: 1, rotationRadians: 0, alpha: obj.alpha});
+    
 
     obj.lights.forEach(light => {
       ctx.save();
@@ -266,6 +279,7 @@ function drawObjects() {
         ctx.arc(0, 0, light.radius, 0, Math.PI * 2);
         ctx.fill();
       }
+
 
       ctx.restore();
     });
@@ -580,6 +594,9 @@ updateObjectBtn.addEventListener("click", () => {
   obj.imagePath = form.elements["imgPath"].value;
   obj.spritesheetPath = form.elements["spritesheetPath"].value;
 
+  loadImageLazy(obj.imagePath),
+  loadImageLazy(obj.spritesheetPath)
+
   // Update lights from form inputs
   obj.lights = [];
   const lightBlocks = document.querySelectorAll("#lights-container .light-block");
@@ -657,37 +674,84 @@ canvas.addEventListener("click", (e) => {
 //exporting
 
 document.getElementById("export-json-btn").addEventListener("click", () => {
-  const exportDiv = document.getElementById("export-output");
+  // Create a deep copy of objects to modify paths without affecting originals
 
-  // Convert objects array to formatted JSON string
-  const jsonStr = JSON.stringify(objects, null, 2);
+  function cleanPath(path) 
+  {
+    // Remove redundant './' inside the path (not at the start)
+    return path.replace(/\/\.\//g, '/');
+  }
 
-  // Show JSON string inside the div
-  exportDiv.textContent = jsonStr;
+  const exportObjects = JSON.parse(JSON.stringify(objects));
+
+  exportObjects.forEach(obj => {
+    if (obj.imagePath && obj.imagePath.startsWith("./")) 
+    {
+      obj.imagePath = "../" + obj.imagePath;
+    }
+    if (obj.imagePath) 
+    {
+      obj.imagePath = cleanPath(obj.imagePath);
+    }
+
+    if (obj.spritesheetPath && obj.spritesheetPath.startsWith("./")) 
+    {
+      obj.spritesheetPath = "../" + obj.spritesheetPath;
+    }
+
+    if (obj.spritesheetPath) 
+    {
+      obj.spritesheetPath = cleanPath(obj.spritesheetPath);
+    }
+  });
+
+  const jsonStr = JSON.stringify(exportObjects, null, 2);
+  document.getElementById("export-output").textContent = jsonStr;
 });
 
 
 
-//importing 
+
 document.getElementById("import-json-btn").addEventListener("click", () => {
   const input = document.getElementById("import-input").value;
 
   try {
     const imported = JSON.parse(input);
 
-    // Clear and replace the contents of the existing array
+    let importedObjects;
     if (Array.isArray(imported)) {
-      objects.length = 0;
-      objects.push(...imported);
+      importedObjects = imported;
     } else if (imported.objects && Array.isArray(imported.objects)) {
-      objects.length = 0;
-      objects.push(...imported.objects);
+      importedObjects = imported.objects;
     } else {
       alert("Invalid format. Expected an array or an object with an 'objects' array.");
       return;
     }
 
-    // Reset UI
+    // Fix paths by removing one "../" and restoring "./"
+    importedObjects.forEach(obj => {
+      if (obj.imagePath && obj.imagePath.startsWith("../")) {
+        obj.imagePath = "./" + obj.imagePath.substring(3);
+      }
+      if (obj.spritesheetPath && obj.spritesheetPath.startsWith("../")) {
+        obj.spritesheetPath = "./" + obj.spritesheetPath.substring(3);
+      }
+    });
+
+    // Clear existing and push new objects
+    objects.length = 0;
+    objects.push(...importedObjects);
+
+    // Rehydrate images
+    objects.forEach(obj => {
+      delete obj.image;
+      delete obj.spriteSheet;
+
+      obj.image = obj.imagePath ? loadImageLazy(obj.imagePath) : null;
+      obj.spriteSheet = obj.spritesheetPath ? loadImageLazy(obj.spritesheetPath) : null;
+    });
+
+    // Reset UI and redraw
     document.getElementById("level-form").reset();
     document.getElementById("lights-container").innerHTML = "";
     editMode = false;
@@ -695,7 +759,6 @@ document.getElementById("import-json-btn").addEventListener("click", () => {
     draggingObject = null;
     draggingCamera = false;
 
-    // Redraw canvas
     drawObjects();
 
     alert("Level imported successfully.");
@@ -704,5 +767,4 @@ document.getElementById("import-json-btn").addEventListener("click", () => {
   }
 
   console.log("Objects after import:", objects);
-
 });

@@ -45,7 +45,7 @@ export class Entity
 
         if(this.spriteSheet !== null)
         {
-            this.image.onLoad(() => {
+            this.spriteSheet.onLoad(() => {
                 this.sprites = cropImage(this.spriteSheet, frameW, frameH);
             })
         }
@@ -185,8 +185,9 @@ export class Entity
 
     drawImage({ctx, scaleX = 1, scaleY = 1, alpha = 1, flipX = false, flipY = false})
     {
-        if(this.image === null) return;
-        this.image.draw({ctx,scaleX,scaleY, rotationRadians: this.body.angle, flipHorizontally: flipX, flipVertically: flipY, alpha});
+        if(this.image === null || !this.image.loaded) return;
+        const rotation = this.body ? this.body.angle : 0;
+        this.image.draw({ctx,x:  this.position.x - this.size.w /2 - 1, y: this.position.y - this.size.h /2 - 1,scaleX,scaleY, rotationRadians: rotation, flipHorizontally: flipX, flipVertically: flipY, alpha});
     }
 
     drawSprite({ctx,startFrame, endFrame, animationSpeed, elapsedTime, scaleX = 1, scaleY = 1, alpha = 1, flipX = false, flipY = false})
@@ -213,14 +214,16 @@ export function howToCenterTheCamera()
     return "(position + size /2) - canvas size / 2 / camera scale";
 }
 
-export function centerCameraOnEntity(camera, entity, canvas) 
+export function centerCameraOnEntity(camera, entity, canvas, offset = {x: 0, y: 0}) 
 {
-    const centerX = entity.position.x + entity.size.w / 2;
-    const centerY = (entity.position.y - 120) + entity.size.h / 2;
+    const centerX = entity.position.x + entity.size.w / 2 + offset.x;
+    const centerY = entity.position.y + entity.size.h / 2 + offset.y;
 
     camera.position = {
         x: centerX - canvas.width / 2 / camera.scale,
         y: centerY - canvas.height / 2 / camera.scale
     };
+    
 }
+
 

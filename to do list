@@ -1,0 +1,19 @@
+editor:
+
+    ----draw images---- done
+    ----snap to grid---- done
+
+
+
+library:
+
+    only draw what is visible
+    start testing the sound library
+
+
+    see if i can make the camera a physical object or having a size attached to it // no needed, camera size and position can be calculated based on its scale and canvas size
+
+    done:
+        ----test the image drawing applied to the scene manager----
+        ----dark overlay position and size being relative to the viewport / camera----
+    

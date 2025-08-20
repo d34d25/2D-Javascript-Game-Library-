@@ -1,22 +1,12 @@
-import {Input} from "../input/input.js";
-import { Camera } from "../render/camera.js";
+import { Player } from "../game/gameObjects/player.js";
 
-export class Player
+export class MyPlayer extends Player
 {
     constructor(entity, canvas)
     {
-        this.entity = entity;
-        this.input = new Input(canvas);
-        this.cameraPos = {x: this.entity.position.x + this.entity.size.w /2, y:this.entity.position.y + this.entity.size.h /2};
-        this.camera = new Camera({position: this.cameraPos, scale: 0.9, rotation: 0});
+       super(entity, canvas);
     }
 
-    set cameraScale(value)
-    {
-        this.camera.scale = value;
-    }
-
- 
     move({speed = 200 * 10, jump = 500 * 100, MAX_SPEED = 150} = {})
     {
         const INPUT = this.input;

@@ -1,14 +1,17 @@
 import * as scenes from "../game/scene/scene.js";
 import { testData } from "../game/scene/sceneData.js";
+import { MyPlayer } from "./myplayer.js";
 
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
 const loadedData = scenes.loadSceneData(testData, canvas);
 
+let myPlayer = new MyPlayer(loadedData.player.entity, canvas);
+
 let testLevel = new scenes.Scene(
     {
-        player: loadedData.player,
+        player: myPlayer,
         bodies: loadedData.bodies,
         entities: loadedData.entities,
         gravity: {x:0, y:550},
@@ -69,7 +72,7 @@ function gameLoop(timestamp)
         ctx: ctx,
         loadedData: loadedData,
         customDrawing: customRender,
-        darkOverlay: true
+        darkOverlay: false
     })});
 
 
