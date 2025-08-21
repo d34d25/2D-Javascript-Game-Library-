@@ -438,11 +438,26 @@ export class PhysWorld
             e = Math.min(bodyA.restitution,bodyB.restitution);
         }
 
-        //let sf = (bodyA.staticFriction + bodyB.staticFriction) * 0.5;
-        //let df = (bodyA.dynamicFriction + bodyB.dynamicFriction) * 0.5;
+        let sf = 0;
+        let df = 0;
+       
+        if(bodyA.staticFriction === 0 || bodyB.staticFriction === 0)
+        {
+            sf = 0;
+        }
+        else
+        {
+            sf = (bodyA.staticFriction + bodyB.staticFriction) * 0.5;
+        }
 
-        let sf = Math.sqrt(bodyA.staticFriction * bodyB.staticFriction);
-        let df = Math.sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction);
+        if(bodyA.dynamicFriction === 0 || bodyB.dynamicFriction === 0)
+        {
+            df = 0;
+        }
+        else
+        {
+            df = (bodyA.dynamicFriction + bodyB.dynamicFriction) * 0.5;
+        }
 
 
         let contactList = [contact1, contact2];
