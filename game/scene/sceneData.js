@@ -23,7 +23,7 @@ export const testData = [
     "infinteMass": false,
     "angle": 0,
     "radius": 50,
-    "hasGravity": false,
+    "hasGravity": true,
     "color": {
       "r": 251,
       "g": 0,

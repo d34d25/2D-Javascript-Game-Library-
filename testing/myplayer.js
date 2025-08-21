@@ -13,16 +13,17 @@ export class MyPlayer extends Player
 
         let speedX = 0, speedY = 0;
 
-        if(INPUT.isKeyDown('KeyA')) speedX = -speed;
-        else if(INPUT.isKeyDown('KeyD')) speedX = speed;
+        if(INPUT.isKeyDown('KeyA')) speedX = -speed / 100;
+        else if(INPUT.isKeyDown('KeyD')) speedX = speed  / 100;
 
-        if(INPUT.isKeyDown('KeyW')) speedY = -speed;
-        else if(INPUT.isKeyDown('KeyS')) speedY = speed;
+        //if(INPUT.isKeyDown('KeyW')) speedY = -speed;
+        //else if(INPUT.isKeyDown('KeyS')) speedY = speed;
 
         
-        if(INPUT.isKeyPressed('Space')) speedY = -jump;
+        if(INPUT.isKeyPressed('Space')) speedY = -jump  / 100;
 
-        this.entity.body.addForce({x:speedX,y:speedY});
+        this.entity.body.addLinearVelocity({x:speedX, y: speedY});
+        //this.entity.body.addForce({x:speedX,y:speedY});
 
         let vx = this.entity.body.linearVelocity.x;
         let vy = this.entity.body.linearVelocity.y;

@@ -10,8 +10,8 @@ library:
     only draw what is visible
     start testing the sound library
 
-
-    see if i can make the camera a physical object or having a size attached to it // no needed, camera size and position can be calculated based on its scale and canvas size
+    add raycasts
+    add to camera, get size(), get position()
 
     done:
         ----test the image drawing applied to the scene manager----
@@ -19,26 +19,36 @@ library:
     
 
 
-        let sf = 0;
-        let df = 0;
-       
-        if(bodyA.staticFriction === 0 || bodyB.staticFriction === 0)
-        {
-            sf = 0;
-        }
-        else
-        {
-            sf = (bodyA.staticFriction + bodyB.staticFriction) * 0.5;
-        }
 
-        if(bodyA.dynamicFriction === 0 || bodyB.dynamicFriction === 0)
-        {
-            df = 0;
-        }
-        else
-        {
-            df = (bodyA.dynamicFriction + bodyB.dynamicFriction) * 0.5;
-        }
+    
+
+
+
+
+
+
+
+
+let sf = 0;
+let df = 0;
+       
+if(bodyA.staticFriction === 0 || bodyB.staticFriction === 0)
+{
+    sf = 0;
+}
+else
+{
+    sf = (bodyA.staticFriction + bodyB.staticFriction) * 0.5;
+}
+
+if(bodyA.dynamicFriction === 0 || bodyB.dynamicFriction === 0)
+{
+    df = 0;
+}
+else
+{
+    df = (bodyA.dynamicFriction + bodyB.dynamicFriction) * 0.5;
+}
 
 
 

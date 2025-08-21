@@ -120,56 +120,6 @@ export class Rigidbody
         };
     }
 
-    
-    drawNormals(ctx, scale = 20) 
-    {
-        const vertices = this.transformedVertices;
-        const normals = this.normals;
-
-        const colors = ['red', 'green', 'blue', 'orange'];
-
-        // Access your normalDirection mapping
-        const normalDirection = this.normalDirection; // assuming it's a getter on your class
-
-        for (let i = 0; i < vertices.length; i++) 
-        {
-            const va = vertices[i];
-            const vb = vertices[(i + 1) % vertices.length];
-
-            // Midpoint of edge
-            const midpoint = {
-                x: (va.x + vb.x) / 2,
-                y: (va.y + vb.y) / 2
-            };
-
-            const normal = normals[i];
-
-            // Use a bigger scale only for the "up" normal
-            let scaleFactor = scale;
-            if (i === normalDirection.up) {
-                scaleFactor *= 1.5;  // increase size by 50%
-            }
-
-            const end = {
-                x: midpoint.x + normal.x * scaleFactor,
-                y: midpoint.y + normal.y * scaleFactor
-            };
-
-            const color = colors[i % colors.length];
-
-            // Draw line
-            ctx.beginPath();
-            ctx.moveTo(midpoint.x, midpoint.y);
-            ctx.lineTo(end.x, end.y);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = (i === normalDirection.up) ? 4 : 2; // thicker line for up normal
-            ctx.stroke();
-
-            // Draw arrowhead
-            drawArrowhead(ctx, midpoint, end, 10, color);
-        }
-    }
-
 
 
     move(amount)
@@ -211,6 +161,12 @@ export class Rigidbody
     addTorque(amount)
     {
         this.torque = amount * this.TORQUE_MULTIPLIER;
+    }
+
+    addLinearVelocity(amount)
+    {
+        this.linearVelocity.x += amount.x;
+        this.linearVelocity.y += amount.y;
     }
 
     setLinearVelocity(amount)
@@ -265,8 +221,6 @@ export class Rigidbody
         if(this.isStatic) return;
 
         time /= iterations;
-
-        //Rigidbody.updatedBodiesCount++;
 
         let acceleration = {x: 0, y:0};
 
@@ -450,23 +404,3 @@ export function createBodyCircle({position = {x:0, y:0},radius = 10,density = 1,
     return body;
 }
 
-
-
-
-function drawArrowhead(ctx, from, to, size = 20, color = 'black') 
-{
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    ctx.beginPath();
-    ctx.moveTo(to.x, to.y);
-    ctx.lineTo(
-        to.x - size * Math.cos(angle - Math.PI / 6),
-        to.y - size * Math.sin(angle - Math.PI / 6)
-    );
-    ctx.lineTo(
-        to.x - size * Math.cos(angle + Math.PI / 6),
-        to.y - size * Math.sin(angle + Math.PI / 6)
-    );
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-}
