@@ -206,8 +206,26 @@ export class PhysWorld
 
         let relativeVel = subtractVectors(bodyB.linearVelocity, bodyA.linearVelocity);
 
-        let sf = Math.sqrt(bodyA.staticFriction * bodyB.staticFriction);
-        let df = Math.sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction);
+        let sf = 0;
+        let df = 0;
+       
+        if(bodyA.staticFriction === 0 || bodyB.staticFriction === 0)
+        {
+            sf = 0;
+        }
+        else
+        {
+            sf = (bodyA.staticFriction + bodyB.staticFriction) * 0.5;
+        }
+
+        if(bodyA.dynamicFriction === 0 || bodyB.dynamicFriction === 0)
+        {
+            df = 0;
+        }
+        else
+        {
+            df = (bodyA.dynamicFriction + bodyB.dynamicFriction) * 0.5;
+        }
 
 
         if(dotProduct(relativeVel,normal) > 0) return;
@@ -606,10 +624,8 @@ export class PhysWorld
             {
                 continue;
             }
-            else
-            {
-                tangent = normalize(tangent);
-            }
+            
+            tangent = normalize(tangent);
             
             let raPerpDotT = dotProduct(raPerp, tangent);
             let rbPerpDotT = dotProduct(rbPerp, tangent);
